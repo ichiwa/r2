@@ -1,34 +1,30 @@
 ﻿import { getLogger } from '../logger';
-import { injectable, inject } from 'inversify';
 import { addMinutes } from 'date-fns';
-import symbols from '../symbols';
 import * as _ from 'lodash';
-import Order from '../Order';
-import Quote from '../Quote';
 import BrokerApi from './BrokerApi';
-import Execution from '../Execution';
 import {
-  CashMarginType, ConfigStore, BrokerConfig, Broker,
-  BrokerAdapter, QuoteSide, OrderStatus
+  Order,
+  Execution,
+  CashMarginType,
+  BrokerAdapter,
+  QuoteSide,
+  OrderStatus,
+  Quote,
+  BrokerConfigType
 } from '../types';
 import { OrderBooksResponse, CashMarginTypeStrategy } from './types';
-import { eRound, almostEqual, findBrokerConfig } from '../util';
+import { eRound, almostEqual, toExecution, toQuote } from '../util';
 import CashStrategy from './CashStrategy';
 import MarginOpenStrategy from './MarginOpenStrategy';
 import NetOutStrategy from './NetOutStrategy';
 
-@injectable()
 export default class BrokerAdapterImpl implements BrokerAdapter {
   private readonly brokerApi: BrokerApi;
   private readonly log = getLogger('Coincheck.BrokerAdapter');
-  private readonly config: BrokerConfig;
-  readonly broker = Broker.Coincheck;
+  readonly broker = 'Coincheck';
   readonly strategyMap: Map<CashMarginType, CashMarginTypeStrategy>;
-
-  constructor(
-    @inject(symbols.ConfigStore) configStore: ConfigStore
-  ) {
-    this.config = findBrokerConfig(configStore.config, this.broker);
+  
+  constructor(private readonly config: BrokerConfigType) {
     this.brokerApi = new BrokerApi(this.config.key, this.config.secret);
     this.strategyMap = new Map<CashMarginType, CashMarginTypeStrategy>([
       [CashMarginType.Cash, new CashStrategy(this.brokerApi)],
@@ -59,11 +55,11 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
   private mapToQuote(orderBooksResponse: OrderBooksResponse): Quote[] {
     const asks = _(orderBooksResponse.asks)
       .take(100)
-      .map(q => new Quote(this.broker, QuoteSide.Ask, q[0], q[1]))
+      .map(q => toQuote(this.broker, QuoteSide.Ask, q[0], q[1]))
       .value();
     const bids = _(orderBooksResponse.bids)
       .take(100)
-      .map(q => new Quote(this.broker, QuoteSide.Bid, q[0], q[1]))
+      .map(q => toQuote(this.broker, QuoteSide.Bid, q[0], q[1]))
       .value();
     return _.concat(asks, bids);
   }
@@ -75,7 +71,7 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
     const strategy = this.strategyMap.get(order.cashMarginType);
     if (strategy === undefined) {
       throw new Error(`Unable to find a strategy for ${order.cashMarginType}.`);
-    } 
+    }
     await strategy.send(order);
   }
 
@@ -104,21 +100,22 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
       return;
     }
     const from = addMinutes(order.creationTime, -1);
-    const transactions = (await this.brokerApi.getTransactionsWithStartDate(from))
-      .filter(x => x.order_id === order.brokerOrderId);
+    const transactions = (await this.brokerApi.getTransactionsWithStartDate(from)).filter(
+      x => x.order_id === order.brokerOrderId
+    );
     if (transactions.length === 0) {
       this.log.warn('The order is not found in pending orders and historical orders.');
       return;
     }
-    order.executions = transactions.map((x) => {
-      const execution = new Execution(order);
+    order.executions = transactions.map(x => {
+      const execution = toExecution(order);
       execution.execTime = x.created_at;
       execution.price = x.rate;
       execution.size = Math.abs(x.funds.btc);
-      return execution;
+      return execution as Execution;
     });
     order.filledSize = eRound(_.sumBy(order.executions, x => x.size));
     order.status = almostEqual(order.filledSize, order.size, 1) ? OrderStatus.Filled : OrderStatus.Canceled;
     order.lastUpdated = new Date();
   }
-}
+} /* istanbul ignore next */

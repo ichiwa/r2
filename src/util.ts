@@ -1,9 +1,8 @@
 import * as _ from 'lodash';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as querystring from 'querystring';
-import { ConfigRoot, Broker, BrokerConfig } from './types';
+import { Execution, Order, Broker, QuoteSide } from './types';
 
 interface ToStringable {
   toString(): string;
@@ -34,12 +33,15 @@ export function delay(time: number): Promise<void> {
 }
 
 export function hmac(secret: string, text: string, algo: string = 'sha256'): string {
-  return crypto.createHmac(algo, secret).update(text).digest('hex');
+  return crypto
+    .createHmac(algo, secret)
+    .update(text)
+    .digest('hex');
 }
 
-export const nonce: () => string = function () {
+export const nonce: () => string = (function() {
   let prev = 0;
-  return function () {
+  return function() {
     const n = Date.now();
     if (n <= prev) {
       prev += 1;
@@ -48,29 +50,24 @@ export const nonce: () => string = function () {
     prev = n;
     return prev.toString();
   };
-}();
+})();
 
 export function timestampToDate(n: number): Date {
   return new Date(n * 1000);
 }
 
-export function mkdir(dir: string): void {
-  try {
-    fs.mkdirSync(dir);
-  } catch (err) {
-    if (err.code !== 'EEXIST') {
-      throw err;
-    }
-  }
+export function safeQueryStringStringify(o: any) {
+  const noUndefinedFields = _.pickBy(o, _.negate(_.isUndefined));
+  return querystring.stringify(noUndefinedFields);
 }
 
-export function calculateCommission(price: number, volume: number, commissionPercent: number): number {
-  return commissionPercent !== undefined ?
-    price * volume * (commissionPercent / 100) : 0;
+export function revive<T>(T: Function, o: T): T {
+  const newObject = Object.create(T.prototype);
+  return Object.assign(newObject, o) as T;
 }
 
 function removeBom(s: string): string {
-  return s.charCodeAt(0) === 0xFEFF ? s.slice(1) : s;
+  return s.charCodeAt(0) === 0xfeff ? s.slice(1) : s;
 }
 
 export function readJsonFileSync(filepath: string): any {
@@ -78,24 +75,16 @@ export function readJsonFileSync(filepath: string): any {
   return JSON.parse(removeBom(content));
 }
 
-export function getConfigRoot(): ConfigRoot {
-  let configPath = process.env.NODE_ENV !== 'test' ?
-    `${__dirname}/config.json` : `${__dirname}/__tests__/config_test.json`;
-  if (!fs.existsSync(configPath)) {
-    configPath = path.join(process.cwd(), path.basename(configPath));
-  }
-  return new ConfigRoot(readJsonFileSync(configPath));
+export function toExecution(order: Order): Partial<Execution> {
+  return {
+    broker: order.broker,
+    brokerOrderId: order.brokerOrderId,
+    cashMarginType: order.cashMarginType,
+    side: order.side,
+    symbol: order.symbol
+  };
 }
 
-export function findBrokerConfig(configRoot: ConfigRoot, broker: Broker): BrokerConfig {
-  const found = configRoot.brokers.find(brokerConfig => brokerConfig.broker === broker);
-  if (found === undefined) {
-    throw new Error(`Unabled to find ${broker} in config.`);
-  }
-  return found;
-}
-
-export function safeQueryStringStringify(o: any) {
-  const noUndefinedFields = _.pickBy(o, _.negate(_.isUndefined));
-  return querystring.stringify(noUndefinedFields);
+export function toQuote(broker: Broker, side: QuoteSide, price: number, volume: number) {
+  return { broker, side, price, volume };
 }

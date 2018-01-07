@@ -1,30 +1,28 @@
 ﻿import {
-  BrokerAdapter, BrokerConfig, ConfigStore, OrderStatus,
-  OrderType, TimeInForce, OrderSide, CashMarginType, QuoteSide, Broker
+  BrokerAdapter,
+  OrderStatus,
+  OrderType,
+  TimeInForce,
+  OrderSide,
+  CashMarginType,
+  QuoteSide,
+  Order,
+  Execution,
+  Quote,
+  BrokerConfigType
 } from '../types';
 import { getLogger } from '../logger';
-import { injectable, inject } from 'inversify';
-import symbols from '../symbols';
 import * as _ from 'lodash';
-import Order from '../Order';
-import Quote from '../Quote';
 import BrokerApi from './BrokerApi';
-import {
-  ChildOrdersParam, SendChildOrderRequest,
-  ChildOrder, BoardResponse
-} from './types';
-import Execution from '../Execution';
-import { eRound, findBrokerConfig } from '../util';
+import { ChildOrdersParam, SendChildOrderRequest, ChildOrder, BoardResponse } from './types';
+import { eRound, toExecution } from '../util';
 
-@injectable()
 export default class BrokerAdapterImpl implements BrokerAdapter {
   private readonly brokerApi: BrokerApi;
   private readonly log = getLogger('Bitflyer.BrokerAdapter');
-  private readonly config: BrokerConfig;
-  readonly broker = Broker.Bitflyer;
+  readonly broker = 'Bitflyer';
 
-  constructor( @inject(symbols.ConfigStore) configStore: ConfigStore) {
-    this.config = findBrokerConfig(configStore.config, this.broker);
+  constructor(private readonly config: BrokerConfigType) {
     this.brokerApi = new BrokerApi(this.config.key, this.config.secret);
   }
 
@@ -53,12 +51,12 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
 
     this.setOrderFields(childOrder, order);
     const executions = await this.brokerApi.getExecutions({ child_order_acceptance_id: orderId });
-    order.executions = _.map(executions, (x) => {
-      const e = new Execution(order);
+    order.executions = _.map(executions, x => {
+      const e = toExecution(order);
       e.size = x.size;
       e.price = x.price;
       e.execTime = new Date(x.exec_date);
-      return e;
+      return e as Execution;
     });
 
     order.lastUpdated = new Date();
@@ -124,7 +122,8 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
         childOrderType = 'MARKET';
         price = 0;
         break;
-      default: throw new Error('Not implemented.');
+      default:
+        throw new Error('Not implemented.');
     }
 
     let timeInForce;
@@ -138,7 +137,8 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
       case TimeInForce.Ioc:
         timeInForce = 'IOC';
         break;
-      default: throw new Error('Not implemented.');
+      default:
+        throw new Error('Not implemented.');
     }
 
     return {
@@ -168,12 +168,16 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
   private mapToQuote(boardResponse: BoardResponse): Quote[] {
     const asks = _(boardResponse.asks)
       .take(100)
-      .map(q => new Quote(this.broker, QuoteSide.Ask, Number(q.price), Number(q.size)))
+      .map(q => {
+        return { broker: this.broker, side: QuoteSide.Ask, price: Number(q.price), volume: Number(q.size) };
+      })
       .value();
     const bids = _(boardResponse.bids)
       .take(100)
-      .map(q => new Quote(this.broker, QuoteSide.Bid, Number(q.price), Number(q.size)))
+      .map(q => {
+        return { broker: this.broker, side: QuoteSide.Bid, price: Number(q.price), volume: Number(q.size) };
+      })
       .value();
     return _.concat(asks, bids);
   }
-}
+} /* istanbul ignore next */

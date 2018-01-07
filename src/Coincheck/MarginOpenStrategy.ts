@@ -1,17 +1,16 @@
 import { CashMarginTypeStrategy } from './types';
 import BrokerApi from './BrokerApi';
-import Order from '../Order';
-import { OrderStatus, OrderSide, CashMarginType } from '../types';
+import { Order, OrderStatus, OrderSide, CashMarginType } from '../types';
 import { eRound } from '../util';
 import * as _ from 'lodash';
 
 export default class MarginOpenStrategy implements CashMarginTypeStrategy {
-  constructor(private readonly brokerApi: BrokerApi) { }
+  constructor(private readonly brokerApi: BrokerApi) {}
 
   async send(order: Order): Promise<void> {
     if (order.cashMarginType !== CashMarginType.MarginOpen) {
       throw new Error();
-    }    
+    }
     const request = {
       pair: 'btc_jpy',
       order_type: this.getBrokerOrderType(order),

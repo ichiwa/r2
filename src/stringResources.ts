@@ -1,9 +1,9 @@
-// tslint:disable:max-line-length
 export const en = {
   ArbitragerThreadHasBeenStopped: 'Arbitrager thread has been stopped. Please hit Enter to close this window.',
   AtLeastTwoBrokersMustBeEnabled: 'At least two brokers must be enabled.',
   AvailableVolume: 'Available volume',
   TargetVolumeIsSmallerThanMinSize: 'Target volume is smaller than min size.',
+  TargetVolumeIsLargerThanMaxTargetVolumePercent: 'Target volume is larger than max target volume percent.',
   BestAsk: 'Best ask',
   BestBid: 'Best bid',
   BothLegsAreSuccessfullyFilled: '>>Both legs are successfully filled.',
@@ -11,7 +11,8 @@ export const en = {
   BuyLegIsNotFilledYetPendingSizeIs: '>>Buy leg is not filled yet. Pending size is %s.',
   CheckingIfBothLegsAreDoneOrNot: '>>Checking if both legs are done or not...',
   ExpectedProfit: 'Expected profit',
-  FailedToGetASpreadAnalysisResult: 'Failed to get a spread analysis result. Check maxLongPosition and maxShortPosition in the broker configs. %s',
+  FailedToGetASpreadAnalysisResult:
+    'Failed to get a spread analysis result. Check maxLongPosition and maxShortPosition in the broker configs. %s',
   FoundArbitrageOppotunity: '>>Found arbitrage oppotunity.',
   FoundInvertedQuotes: 'Found inverted quotes.',
   LongAllowed: 'LongAllowed',
@@ -42,10 +43,14 @@ export const en = {
   ThisIsDemoModeNotSendingOrders: '>>This is Demo mode. Not sending orders.',
   AnalyzingQuotes: 'Analyzing quotes...',
   WaitingForPositionService: 'Waiting for Position Service...',
-  FilledSummary: 'Filled: %s %s %d BTC filled at %s',
-  UnfilledSummary: 'Pending: %s %s %d BTC sent at %s, pending size %d BTC',
+  FilledSummary: '>>Filled: %s %s %d BTC filled at %s',
+  UnfilledSummary: '>>Pending: %s %s %d BTC sent at %s, pending size %d BTC',
   FoundClosableOrders: 'Found closable orders.',
-  OpenPairs: 'Open pairs:'
+  OpenPairs: 'Open pairs:',
+  SendingOrderTtl: '>>Sending an order with TTL %d ms...',
+  NotFilledTtl: '>>The order was not filled within TTL %d ms. Cancelling the order.',
+  ExecuteUnfilledLeg: '>>Trying to execute the unfilled leg %s at new price %s, size %s BTC',
+  ReverseFilledLeg: '>>Trying to reverse the filled leg %s at new price %s, size %s BTC'
 };
 
 export const ja = {
@@ -53,6 +58,7 @@ export const ja = {
   AtLeastTwoBrokersMustBeEnabled: '少なくとも2つの取引所を有効にする必要があります。',
   AvailableVolume: '裁定可能数量',
   TargetVolumeIsSmallerThanMinSize: '裁定機会なし。目標数量 < 最小数量設定',
+  TargetVolumeIsLargerThanMaxTargetVolumePercent: '裁定機会なし。目標数量 > 裁定可能数量に対する割合',
   BestAsk: 'ベストアスク',
   BestBid: 'ベストビッド',
   BothLegsAreSuccessfullyFilled: '>>両方のオーダーの約定完了。',
@@ -60,12 +66,14 @@ export const ja = {
   BuyLegIsNotFilledYetPendingSizeIs: '>>買いオーダー未約定。残り数量%s',
   CheckingIfBothLegsAreDoneOrNot: '>>約定確認中...',
   ExpectedProfit: '予想収益　　',
-  FailedToGetASpreadAnalysisResult: 'スプレッド解析結果の取得に失敗しました。取引所設定のmaxLongPosition, maxShortPositionが十分に大きいか確認してください。 %s',
+  FailedToGetASpreadAnalysisResult:
+    'スプレッド解析結果の取得に失敗しました。取引所設定のmaxLongPosition, maxShortPositionが十分に大きいか確認してください。 %s',
   FoundArbitrageOppotunity: '>>裁定機会を発見。',
   FoundInvertedQuotes: 'スプレッドの逆転を発見。',
   LongAllowed: '買い試行許可',
   LookingForOpportunity: '裁定機会をチェック中...',
-  MaxRetryCountReachedCancellingThePendingOrders: '最大試行回数(maxRetryCount設定)に達しました。オーダーをキャンセルします。',
+  MaxRetryCountReachedCancellingThePendingOrders:
+    '最大試行回数(maxRetryCount設定)に達しました。オーダーをキャンセルします。',
   NetExposureIsLargerThanMaxNetExposure: 'ネットエクスポージャーが最大ネットエクスポージャー設定を超えています。',
   NoArbitrageOpportunitySpreadIsNotInverted: '裁定機会なし。スプレッド > 0。',
   NoBestAskWasFound: 'ベストアスクが見つかりませんでした。',
@@ -94,5 +102,9 @@ export const ja = {
   FilledSummary: '>>約定済み: %s %s %d BTC 約定価格 %s',
   UnfilledSummary: '>>執行中: %s %s %d BTC 指値 %s, 残り数量 %d BTC',
   FoundClosableOrders: 'クローズ可能なオーダーを発見。',
-  OpenPairs: 'オープン状態のオーダーペア:'
+  OpenPairs: 'オープン状態のオーダーペア:',
+  SendingOrderTtl: '>>TTL %d msのオーダーを送信中...',
+  NotFilledTtl: '>>TTL %d msの間にオーダーは約定しませんでした。キャンセルします。',
+  ExecuteUnfilledLeg: '>>約定しなかったオーダー %s を価格 %s 数量 %s で再送信中...',
+  ReverseFilledLeg: '>>約定したオーダー %s を価格 %s 数量 %s で反対売買中...'
 };

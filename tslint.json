@@ -42,7 +42,6 @@
         ]
       }
     ],
-    //"no-any": false,
     "no-arg": true,
     "no-bitwise": true,
     "no-consecutive-blank-lines": true,
@@ -115,6 +114,9 @@
       "check-typecast"
     ],
     "import-name": false,
-    "ter-arrow-parens": false
+    "ter-arrow-parens": false,
+    "space-before-function-paren": false,
+    "object-shorthand-properties-first": false,
+    "no-floating-promises": true
   }
 }

@@ -13,3 +13,6 @@ logs
 coverage
 config.json
 .vscode
+.idea
+.python-version
+datastore/

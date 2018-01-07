@@ -1,15 +1,19 @@
 // tslint:disable:variable-name
-import { TypeConverter, cast, element } from '../TypeConverter';
+import { Castable, cast, element } from '@bitr/castable';
 
-class PriceSizePair extends TypeConverter {
+class PriceSizePair extends Castable {
   @cast price: number;
   @cast size: number;
 }
 
-export class BoardResponse extends TypeConverter {
+export class BoardResponse extends Castable {
   @cast mid_price: number;
-  @cast @element(PriceSizePair) bids: PriceSizePair[];
-  @cast @element(PriceSizePair) asks: PriceSizePair[];
+  @cast
+  @element(PriceSizePair)
+  bids: PriceSizePair[];
+  @cast
+  @element(PriceSizePair)
+  asks: PriceSizePair[];
 }
 
 export interface SendChildOrderRequest {
@@ -22,7 +26,7 @@ export interface SendChildOrderRequest {
   time_in_force?: string;
 }
 
-export class SendChildOrderResponse extends TypeConverter {
+export class SendChildOrderResponse extends Castable {
   @cast child_order_acceptance_id: string;
 }
 
@@ -32,8 +36,7 @@ export interface CancelChildOrderRequest {
   child_order_id?: string;
 }
 
-export interface CancelChildOrderResponse {
-}
+export interface CancelChildOrderResponse {}
 
 export interface ExecutionsParam {
   product_code?: string;
@@ -44,7 +47,7 @@ export interface ExecutionsParam {
   child_order_acceptance_id?: string;
 }
 
-export class Execution extends TypeConverter {
+export class Execution extends Castable {
   @cast id: number;
   @cast child_order_id: string;
   @cast side: string;
@@ -57,7 +60,7 @@ export class Execution extends TypeConverter {
 
 export type ExecutionsResponse = Execution[];
 
-export class Balance extends TypeConverter {
+export class Balance extends Castable {
   @cast currency_code: string;
   @cast amount: number;
   @cast available: number;
@@ -76,7 +79,7 @@ export interface ChildOrdersParam {
   parent_order_id?: string;
 }
 
-export class ChildOrder extends TypeConverter {
+export class ChildOrder extends Castable {
   @cast id: number;
   @cast child_order_id: string;
   @cast product_code: string;

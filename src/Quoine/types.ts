@@ -1,7 +1,7 @@
 // tslint:disable:variable-name
-import { TypeConverter, cast, element } from '../TypeConverter';
+import { Castable, cast, element } from '@bitr/castable';
 
-export interface Order {
+export interface BrokerOrder {
   order_type: string;
   product_id: string;
   side: string;
@@ -12,10 +12,10 @@ export interface Order {
 }
 
 export interface SendOrderRequest {
-  order: Order;
+  order: BrokerOrder;
 }
 
-export class SendOrderResponse extends TypeConverter {
+export class SendOrderResponse extends Castable {
   @cast id: string;
   @cast order_type: string;
   @cast quantity: string;
@@ -44,7 +44,7 @@ export class SendOrderResponse extends TypeConverter {
 
 export type CancelOrderResponse = any;
 
-export class Execution extends TypeConverter {
+export class Execution extends Castable {
   @cast id: string;
   @cast quantity: string;
   @cast price: string;
@@ -53,7 +53,7 @@ export class Execution extends TypeConverter {
   @cast my_side: string;
 }
 
-export class OrdersResponse extends TypeConverter {
+export class OrdersResponse extends Castable {
   @cast id: string;
   @cast order_type: string;
   @cast quantity: string;
@@ -81,11 +81,13 @@ export class OrdersResponse extends TypeConverter {
   @cast settings?: any;
   @cast trailing_stop_type: boolean;
   @cast trailing_stop_value: boolean;
-  @cast @element(Execution) executions: Execution[];
+  @cast
+  @element(Execution)
+  executions: Execution[];
   @cast stop_triggered_time?: any;
 }
 
-export class TradingAccount extends TypeConverter {
+export class TradingAccount extends Castable {
   @cast id: string;
   @cast leverage_level: number;
   @cast max_leverage_level: number;
@@ -109,13 +111,17 @@ export class TradingAccount extends TypeConverter {
 }
 
 export type TradingAccountsResponse = TradingAccount[];
-export class PriceLevelsResponse extends TypeConverter {
-  @cast @element(Array, Number) buy_price_levels: number[][];
-  @cast @element(Array, Number) sell_price_levels: number[][];
+export class PriceLevelsResponse extends Castable {
+  @cast
+  @element(Array, Number)
+  buy_price_levels: number[][];
+  @cast
+  @element(Array, Number)
+  sell_price_levels: number[][];
 }
 
 export type CloseAllResponse = ClosingTrade[];
-export class ClosingTrade extends TypeConverter {
+export class ClosingTrade extends Castable {
   @cast id: number;
   @cast currency_pair_code: string;
   @cast status: string;
@@ -139,4 +145,15 @@ export class ClosingTrade extends TypeConverter {
   @cast created_at: number;
   @cast updated_at: number;
   @cast total_interest: number;
+}
+
+export class AccountBalance extends Castable {
+  @cast currency: string;
+  @cast balance: number;
+}
+
+export type AccountBalanceResponse = AccountBalance[];
+
+export interface CashMarginTypeStrategy {
+  getBtcPosition(): Promise<number>;
 }

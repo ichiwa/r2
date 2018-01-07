@@ -1,12 +1,11 @@
 import { CashMarginTypeStrategy, NewOrderRequest, LeveragePosition } from './types';
 import BrokerApi from './BrokerApi';
-import Order from '../Order';
-import { OrderStatus, OrderSide, CashMarginType, OrderType } from '../types';
+import { Order, OrderStatus, OrderSide, CashMarginType, OrderType } from '../types';
 import { eRound, almostEqual } from '../util';
 import * as _ from 'lodash';
 
 export default class NetOutStrategy implements CashMarginTypeStrategy {
-  constructor(private readonly brokerApi: BrokerApi) { }
+  constructor(private readonly brokerApi: BrokerApi) {}
 
   async send(order: Order): Promise<void> {
     if (order.cashMarginType !== CashMarginType.NetOut) {

@@ -1,19 +1,21 @@
 // Ad-hoc script to get balances from exchanges and output the result in CSV format.
 
 import * as _ from 'lodash';
-import * as util from '../src/util';
+import { getConfigRoot, findBrokerConfig } from '../src/configUtil';
 import BitflyerApi from '../src/Bitflyer/BrokerApi';
 import CoincheckApi from '../src/Coincheck/BrokerApi';
 import QuoineApi from '../src/Quoine/BrokerApi';
-import { Broker } from '../src/types';
 import { Balance } from '../src/Bitflyer/types';
-import { TradingAccount } from '../src/Quoine/types';
+import { TradingAccount, AccountBalance } from '../src/Quoine/types';
+import { options } from '../src/logger';
+
+options.enabled = false;
 
 async function main() {
-  const config = util.getConfigRoot();
-  const bfConfig = util.findBrokerConfig(config, Broker.Bitflyer);
-  const ccConfig = util.findBrokerConfig(config, Broker.Coincheck);
-  const quConfig = util.findBrokerConfig(config, Broker.Quoine);
+  const config = getConfigRoot();
+  const bfConfig = findBrokerConfig(config, 'Bitflyer');
+  const ccConfig = findBrokerConfig(config, 'Coincheck');
+  const quConfig = findBrokerConfig(config, 'Quoine');
 
   const bfApi = new BitflyerApi(bfConfig.key, bfConfig.secret);
   const ccApi = new CoincheckApi(ccConfig.key, ccConfig.secret);
@@ -47,8 +49,15 @@ async function main() {
     process.stdout.write(`Coincheck, BTC, Leverage Position, ${longPosition - shortPosition}\n`);
   }
 
-  // quoine margin balance
   if (quConfig.enabled) {
+    // quoine cash balance
+    const quCashBalance = await quApi.getAccountBalance();
+    const quJpyCash = quCashBalance.find(b => b.currency === 'JPY') as AccountBalance;
+    const quBtcCash = quCashBalance.find(b => b.currency === 'BTC') as AccountBalance;
+    process.stdout.write(`Quoine, JPY, Cash, ${_.round(quJpyCash.balance)}\n`);
+    process.stdout.write(`Quoine, BTC, Cash, ${quBtcCash.balance}\n`);
+
+    // quoine margin balance
     const quBalance = await quApi.getTradingAccounts();
     const quBtcJpyBalance = quBalance.find(x => x.currency_pair_code === 'BTCJPY') as TradingAccount;
     process.stdout.write(`Quoine, JPY, Margin, ${_.round(quBtcJpyBalance.balance)}\n`);
